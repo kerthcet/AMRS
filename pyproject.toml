@@ -1,29 +1,39 @@
-[tool.poetry]
+[project]
 name = "AMRS"
 version = "0.0.0"
 description = "The adaptive model routing system for exploration and exploitation."
-authors = ["InftyAI"]
-license = "MIT License"
+authors = [
+    { name = "InftyAI", email = "contact@inftyai.com" }
+]
+license = {text = "MIT License"}
 readme = "README.md"
+requires-python = ">=3.12"
 
-[tool.poetry.dependencies]
-python = "^3.10"
+dependencies = []
 
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.5.1"
-black = "^23.9.1"
-pytest = "^7.4.2"
+[dependency-groups]
+dev = [
+  {include-group = "lint"},
+  {include-group = "test"}
+]
+lint = [
+    "ruff>=0.12",
+]
+test = [
+    "pytest>=8.4",
+    "pytest-asyncio>=0.22",
+    "pytest-timeout>=2.1",
+    # Data generation
+    "faker>=37.12",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 markers = [
     "integration_test: marks tests as integration tests",
-]
-filterwarnings = [
-    "ignore::DeprecationWarning",
 ]
 
 [tool.mypy]
