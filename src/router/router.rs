@@ -4,35 +4,31 @@ use std::sync::atomic::AtomicUsize;
 use crate::config::{ModelConfig, ModelId, RoutingMode};
 use crate::provider::provider::ResponseRequest;
 use crate::router::random::RandomRouter;
-use crate::router::weight::WeightedRouter;
+use crate::router::wrr::WeightedRoundRobinRouter;
+
+#[derive(Debug, Clone)]
+pub struct ModelInfo {
+    pub id: ModelId,
+    pub weight: i32,
+}
 
 pub fn construct_router(mode: RoutingMode, models: Vec<ModelConfig>) -> Box<dyn Router> {
-    let model_ids: Vec<ModelId> = models.iter().map(|m| m.id.clone()).collect();
+    let model_infos: Vec<ModelInfo> = models
+        .iter()
+        .map(|m| ModelInfo {
+            id: m.id.clone(),
+            weight: m.weight.clone(),
+        })
+        .collect();
     match mode {
-        RoutingMode::Random => Box::new(RandomRouter::new(model_ids)),
-        RoutingMode::Weighted => Box::new(WeightedRouter::new(model_ids)),
+        RoutingMode::Random => Box::new(RandomRouter::new(model_infos)),
+        RoutingMode::WRR => Box::new(WeightedRoundRobinRouter::new(model_infos)),
     }
 }
 
 pub trait Router {
     fn name(&self) -> &'static str;
-    fn sample(&self, input: &ResponseRequest) -> ModelId;
-}
-
-pub struct RouterTracker {
-    total_requests: HashMap<ModelId, AtomicUsize>,
-    avg_latencies: HashMap<ModelId, AtomicUsize>,
-    total_tokens: HashMap<ModelId, AtomicUsize>,
-}
-
-impl RouterTracker {
-    pub fn new() -> Self {
-        RouterTracker {
-            total_requests: HashMap::new(),
-            avg_latencies: HashMap::new(),
-            total_tokens: HashMap::new(),
-        }
-    }
+    fn sample(&mut self, input: &ResponseRequest) -> ModelId;
 }
 
 #[cfg(test)]
@@ -58,7 +54,7 @@ mod tests {
         let random_router = construct_router(RoutingMode::Random, model_configs.clone());
         assert_eq!(random_router.name(), "RandomRouter");
 
-        let weighted_router = construct_router(RoutingMode::Weighted, model_configs.clone());
-        assert_eq!(weighted_router.name(), "WeightedRouter");
+        let weighted_router = construct_router(RoutingMode::WRR, model_configs.clone());
+        assert_eq!(weighted_router.name(), "WeightedRoundRobinRouter");
     }
 }

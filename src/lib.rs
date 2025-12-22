@@ -1,7 +1,8 @@
 mod router {
     mod random;
     pub mod router;
-    mod weight;
+    pub mod stats;
+    mod wrr;
 }
 mod client {
     pub mod client;

@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use crate::config::{Config, ModelConfig, ModelId, RoutingMode};
+use crate::config::{Config, ModelId};
 use crate::provider::provider;
 use crate::router::router;
 
 pub struct Client {
-    router_tracker: Option<router::RouterTracker>,
-    router: Box<dyn router::Router>,
     providers: HashMap<ModelId, Box<dyn provider::Provider>>,
+    router: Box<dyn router::Router>,
 }
 
 impl Client {
@@ -22,20 +21,13 @@ impl Client {
             .collect();
 
         Self {
-            router_tracker: None,
             providers: providers,
             router: router::construct_router(cfg.routing_mode, cfg.models),
         }
     }
 
-    pub fn enable_router_tracker(&mut self) {
-        if self.router_tracker.is_none() {
-            self.router_tracker = Some(router::RouterTracker::new());
-        }
-    }
-
     pub async fn create_response(
-        &self,
+        &mut self,
         request: provider::ResponseRequest,
     ) -> Result<provider::ResponseResult, provider::APIError> {
         let model_id = self.router.sample(&request);
@@ -47,13 +39,14 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::{Config, ModelConfig, RoutingMode};
+
     #[test]
     fn test_client_new() {
         struct TestCase {
             name: &'static str,
             config: Config,
             expected_router_name: &'static str,
-            enabled_tracker: bool,
         }
 
         let cases = vec![
@@ -69,12 +62,11 @@ mod tests {
                     .build()
                     .unwrap(),
                 expected_router_name: "RandomRouter",
-                enabled_tracker: false,
             },
             TestCase {
-                name: "weighted router",
+                name: "weighted round-robin router",
                 config: Config::builder()
-                    .routing_mode(RoutingMode::Weighted)
+                    .routing_mode(RoutingMode::WRR)
                     .models(vec![
                         crate::config::ModelConfig::builder()
                             .id("model_a".to_string())
@@ -93,8 +85,7 @@ mod tests {
                     ])
                     .build()
                     .unwrap(),
-                expected_router_name: "WeightedRouter",
-                enabled_tracker: false,
+                expected_router_name: "WeightedRoundRobinRouter",
             },
             TestCase {
                 name: "router tracker enabled",
@@ -116,25 +107,15 @@ mod tests {
                     .build()
                     .unwrap(),
                 expected_router_name: "RandomRouter",
-                enabled_tracker: true,
             },
         ];
 
         for case in cases {
-            let mut client = Client::new(case.config.clone());
-            if case.enabled_tracker {
-                client.enable_router_tracker();
-            }
+            let client = Client::new(case.config.clone());
             assert_eq!(
                 client.router.name(),
                 case.expected_router_name,
                 "Test case '{}' failed",
-                case.name
-            );
-            assert_eq!(
-                client.router_tracker.is_some(),
-                case.enabled_tracker,
-                "Test case '{}' failed on router tracker state",
                 case.name
             );
             assert_eq!(
