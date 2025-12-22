@@ -289,6 +289,8 @@ mod tests {
 
     #[test]
     fn test_populate_config() {
+        from_filename(".env.test").ok();
+
         let mut valid_cfg = Config::builder()
             .temperature(0.5)
             .max_output_tokens(1500)
@@ -313,7 +315,7 @@ mod tests {
         assert!(valid_cfg.as_ref().unwrap().models[0].weight == -1);
 
         let mut valid_specified_cfg = Config::builder()
-            .provider("DEEPINFRA".to_string())
+            .provider("AMRS".to_string())
             .base_url("http://custom-api.ai".to_string())
             .model(
                 ModelConfig::builder()
@@ -325,7 +327,7 @@ mod tests {
         valid_specified_cfg.as_mut().unwrap().populate();
 
         assert!(valid_specified_cfg.is_ok());
-        assert!(valid_specified_cfg.as_ref().unwrap().provider == "DEEPINFRA".to_string());
+        assert!(valid_specified_cfg.as_ref().unwrap().provider == "AMRS".to_string());
         assert!(
             valid_specified_cfg.as_ref().unwrap().models[0].base_url
                 == Some("http://custom-api.ai".to_string())
