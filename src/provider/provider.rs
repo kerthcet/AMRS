@@ -11,8 +11,8 @@ pub type APIError = OpenAIError;
 
 pub fn construct_provider(config: &ModelConfig) -> Box<dyn Provider> {
     let provider = config.provider.as_ref().unwrap();
-    match provider.as_str() {
-        "openai" => Box::new(OpenAIProvider::new(config).build()),
+    match provider.to_uppercase().as_ref() {
+        "OPENAI" => Box::new(OpenAIProvider::new(config).build()),
         _ => panic!("Unsupported provider: {}", provider),
     }
 }

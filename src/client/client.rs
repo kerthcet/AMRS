@@ -58,20 +58,11 @@ mod tests {
 
         let cases = vec![
             TestCase {
-                name: "Random Router",
+                name: "basic config",
                 config: Config::builder()
-                    .routing_mode(RoutingMode::Random)
                     .models(vec![
-                        crate::config::ModelConfig::builder()
-                            .id("model_a".to_string())
-                            .provider(Some("openai".to_string()))
-                            .base_url(Some("https://api.openai.com/v1".to_string()))
-                            .build()
-                            .unwrap(),
-                        crate::config::ModelConfig::builder()
-                            .id("model_b".to_string())
-                            .provider(Some("openai".to_string()))
-                            .base_url(Some("https://api.openai.com/v1".to_string()))
+                        ModelConfig::builder()
+                            .id("model_c".to_string())
                             .build()
                             .unwrap(),
                     ])
@@ -81,18 +72,18 @@ mod tests {
                 enabled_tracker: false,
             },
             TestCase {
-                name: "router tracker enabled",
+                name: "weighted router",
                 config: Config::builder()
                     .routing_mode(RoutingMode::Weighted)
                     .models(vec![
-                        ModelConfig::builder()
+                        crate::config::ModelConfig::builder()
                             .id("model_a".to_string())
                             .provider(Some("openai".to_string()))
                             .base_url(Some("https://api.openai.com/v1".to_string()))
                             .weight(1)
                             .build()
                             .unwrap(),
-                        ModelConfig::builder()
+                        crate::config::ModelConfig::builder()
                             .id("model_b".to_string())
                             .provider(Some("openai".to_string()))
                             .base_url(Some("https://api.openai.com/v1".to_string()))
@@ -103,6 +94,28 @@ mod tests {
                     .build()
                     .unwrap(),
                 expected_router_name: "WeightedRouter",
+                enabled_tracker: false,
+            },
+            TestCase {
+                name: "router tracker enabled",
+                config: Config::builder()
+                    .models(vec![
+                        ModelConfig::builder()
+                            .id("model_a".to_string())
+                            .provider(Some("openai".to_string()))
+                            .base_url(Some("https://api.openai.com/v1".to_string()))
+                            .build()
+                            .unwrap(),
+                        ModelConfig::builder()
+                            .id("model_b".to_string())
+                            .provider(Some("openai".to_string()))
+                            .base_url(Some("https://api.openai.com/v1".to_string()))
+                            .build()
+                            .unwrap(),
+                    ])
+                    .build()
+                    .unwrap(),
+                expected_router_name: "RandomRouter",
                 enabled_tracker: true,
             },
         ];
