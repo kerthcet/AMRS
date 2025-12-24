@@ -4,6 +4,55 @@
 
 The Adaptive Model Routing System (AMRS) is a framework designed to select the best-fit model for exploration and exploitation. (still under development)
 
+Thanks to [async-openai](https://github.com/64bit/async-openai), AMRS builds on top of it to provide adaptive model routing capabilities.
+
+## Features
+
+- Flexible routing strategies, including:
+  - **Random**: Randomly selects a model from the available models.
+  - **WRR**: Weighted Round Robin selects models based on predefined weights.
+  - **UCB**: Upper Confidence Bound based model selection (coming soon).
+  - **Adaptive**: Dynamically selects models based on performance metrics (coming soon).
+
+
+## How to use
+
+Here's a simple example with random routing mode:
+
+
+```rust
+// Before running the code, make sure to set your OpenAI API key in the environment variable:
+// export OPENAI_API_KEY="your_openai_api_key"
+
+use arms::{Client, Config, ModelConfig, CreateResponseArgs, RoutingMode};
+
+let config = Config::builder()
+    .provider("openai")
+    .routing_mode(RoutingMode::Random)
+    .model(
+        ModelConfig::builder()
+            .id("gpt-3.5-turbo")
+            .build()
+            .unwrap(),
+    )
+    .model(
+        ModelConfig::builder()
+            .id("gpt-4")
+            .build()
+            .unwrap(),
+    )
+    .build()
+    .unwrap();
+
+let mut client = Client::new(config);
+let request = CreateResponseArgs::default()
+    .input("give me a poem about nature")
+    .build()
+    .unwrap();
+
+let response = client.create_response(request).await.unwrap();
+```
+
 ## Contributing
 
 🚀 All kinds of contributions are welcomed ! Please follow [Contributing](/CONTRIBUTING.md).

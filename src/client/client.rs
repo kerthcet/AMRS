@@ -17,7 +17,7 @@ impl Client {
         let providers = cfg
             .models
             .iter()
-            .map(|m| (m.id.clone(), provider::construct_provider(m)))
+            .map(|m| (m.id.clone(), provider::construct_provider(m.clone())))
             .collect();
 
         Self {
@@ -28,8 +28,8 @@ impl Client {
 
     pub async fn create_response(
         &mut self,
-        request: provider::ResponseRequest,
-    ) -> Result<provider::ResponseResult, provider::APIError> {
+        request: provider::CreateResponseReq,
+    ) -> Result<provider::CreateResponseRes, provider::APIError> {
         let model_id = self.router.sample(&request);
         let provider = self.providers.get(&model_id).unwrap();
         provider.create_response(request).await
