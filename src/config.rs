@@ -14,6 +14,8 @@ lazy_static! {
         m.insert("OPENAI", "https://api.openai.com/v1");
         m.insert("DEEPINFRA", "https://api.deepinfra.com/v1/openai");
         m.insert("OPENROUTER", "https://openrouter.ai/api/v1");
+
+        m.insert("FAKE", "http://localhost:8080"); // test only
         // TODO: support more providers here...
         m
     };
@@ -34,20 +36,34 @@ pub type ModelId = String;
 pub struct ModelConfig {
     // model-specific configs, will override global configs if provided
     #[builder(default = "None")]
-    pub base_url: Option<String>,
+    pub(crate) base_url: Option<String>,
+    #[builder(default = "None", setter(custom))]
+    pub(crate) provider: Option<ProviderName>,
     #[builder(default = "None")]
-    pub provider: Option<ProviderName>,
+    pub(crate) temperature: Option<f32>,
     #[builder(default = "None")]
-    pub temperature: Option<f32>,
-    #[builder(default = "None")]
-    pub max_output_tokens: Option<usize>,
+    pub(crate) max_output_tokens: Option<usize>,
 
-    pub id: ModelId,
+    #[builder(setter(custom))]
+    pub(crate) id: ModelId,
     #[builder(default=-1)]
-    pub weight: i32,
+    pub(crate) weight: i32,
 }
 
 impl ModelConfigBuilder {
+    pub fn id<S: AsRef<str>>(&mut self, name: S) -> &mut Self {
+        self.id = Some(name.as_ref().to_string());
+        self
+    }
+
+    pub fn provider<S>(&mut self, name: Option<S>) -> &mut Self
+    where
+        S: AsRef<str>,
+    {
+        self.provider = Some(name.map(|s| s.as_ref().to_string().to_uppercase()));
+        self
+    }
+
     fn validate(&self) -> Result<(), String> {
         if self.id.is_none() {
             return Err("Model id must be provided.".to_string());
@@ -69,7 +85,7 @@ pub struct Config {
     // global configs for models, will be overridden by model-specific configs
     #[builder(default = "https://api.openai.com/v1".to_string())]
     pub(crate) base_url: String,
-    #[builder(default = "ProviderName::from(OPENAI_PROVIDER)")]
+    #[builder(default = "ProviderName::from(OPENAI_PROVIDER)", setter(custom))]
     pub(crate) provider: ProviderName,
     #[builder(default = "0.8")]
     pub(crate) temperature: f32,
@@ -121,6 +137,11 @@ impl ConfigBuilder {
         let mut models = self.models.clone().unwrap_or_default();
         models.push(model);
         self.models = Some(models);
+        self
+    }
+
+    pub fn provider<S: AsRef<str>>(&mut self, name: S) -> &mut Self {
+        self.provider = Some(name.as_ref().to_string().to_uppercase());
         self
     }
 
@@ -258,7 +279,7 @@ mod tests {
                     .build()
                     .unwrap(),
             )
-            .provider("unknown_provider".to_string())
+            .provider("unknown_provider")
             .build();
         assert!(invalid_cfg_with_no_api_key.is_err());
 
@@ -269,8 +290,8 @@ mod tests {
             .max_output_tokens(2048)
             .model(
                 ModelConfig::builder()
-                    .id("custom-model".to_string())
-                    .provider(Some("AMRS".to_string()))
+                    .id("custom-model")
+                    .provider(Some("AMRS"))
                     .build()
                     .unwrap(),
             )
@@ -317,12 +338,7 @@ mod tests {
         let mut valid_specified_cfg = Config::builder()
             .provider("AMRS".to_string())
             .base_url("http://custom-api.ai".to_string())
-            .model(
-                ModelConfig::builder()
-                    .id("model-2".to_string())
-                    .build()
-                    .unwrap(),
-            )
+            .model(ModelConfig::builder().id("model-2").build().unwrap())
             .build();
         valid_specified_cfg.as_mut().unwrap().populate();
 

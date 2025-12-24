@@ -1,18 +1,23 @@
-use async_openai::error::OpenAIError;
-use async_openai::types::responses::{CreateResponse as OpenAIRequest, Response as OpenAIResponse};
+use async_openai::error::OpenAIError as OpenAI_Error;
+use async_openai::types::responses::{
+    CreateResponse, CreateResponseArgs as OpenAICreateResponseArgs, Response,
+};
 use async_trait::async_trait;
 
 use crate::config::ModelConfig;
+use crate::provider::fake::FakeProvider;
 use crate::provider::openai::OpenAIProvider;
 
-pub type ResponseRequest = OpenAIRequest;
-pub type ResponseResult = OpenAIResponse;
-pub type APIError = OpenAIError;
+pub type CreateResponseInput = CreateResponse;
+pub type CreateResponseArgs = OpenAICreateResponseArgs;
+pub type CreateResponseOutput = Response;
+pub type APIError = OpenAI_Error;
 
-pub fn construct_provider(config: &ModelConfig) -> Box<dyn Provider> {
+pub fn construct_provider(config: ModelConfig) -> Box<dyn Provider> {
     let provider = config.provider.as_ref().unwrap();
     match provider.to_uppercase().as_ref() {
-        "OPENAI" => Box::new(OpenAIProvider::new(config).build()),
+        "FAKE" => Box::new(FakeProvider::new(config)),
+        "OPENAI" => Box::new(OpenAIProvider::builder(config).build()),
         _ => panic!("Unsupported provider: {}", provider),
     }
 }
@@ -20,7 +25,19 @@ pub fn construct_provider(config: &ModelConfig) -> Box<dyn Provider> {
 #[async_trait]
 pub trait Provider: Send + Sync {
     fn name(&self) -> &'static str;
-    async fn create_response(&self, request: ResponseRequest) -> Result<ResponseResult, APIError>;
+    async fn create_response(
+        &self,
+        request: CreateResponseInput,
+    ) -> Result<CreateResponseOutput, APIError>;
+}
+
+pub fn validate_request(request: &CreateResponseInput) -> Result<(), APIError> {
+    if request.model.is_some() {
+        return Err(APIError::InvalidArgument(
+            "Model ID must be specified in the config".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -61,7 +78,7 @@ mod tests {
         for case in cases {
             if case.expect_provider_type.is_empty() {
                 let result = std::panic::catch_unwind(|| {
-                    construct_provider(&case.config);
+                    construct_provider(case.config);
                 });
                 assert!(
                     result.is_err(),
@@ -69,7 +86,7 @@ mod tests {
                     case.name
                 );
             } else {
-                let provider = construct_provider(&case.config);
+                let provider = construct_provider(case.config);
                 assert!(
                     provider.name() == case.expect_provider_type,
                     "Test case '{}': expected provider type '{}', got '{}'",

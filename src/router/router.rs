@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicUsize;
 
 use crate::config::{ModelConfig, ModelId, RoutingMode};
-use crate::provider::provider::ResponseRequest;
+use crate::provider::provider::CreateResponseInput;
 use crate::router::random::RandomRouter;
 use crate::router::wrr::WeightedRoundRobinRouter;
 
@@ -28,7 +28,7 @@ pub fn construct_router(mode: RoutingMode, models: Vec<ModelConfig>) -> Box<dyn 
 
 pub trait Router {
     fn name(&self) -> &'static str;
-    fn sample(&mut self, input: &ResponseRequest) -> ModelId;
+    fn sample(&mut self, input: &CreateResponseInput) -> ModelId;
 }
 
 #[cfg(test)]
