@@ -32,11 +32,11 @@ fn main() {
             chat::ChatCompletionRequestSystemMessage::from("You are a helpful assistant.").into(),
             chat::ChatCompletionRequestUserMessage::from("Who won the world series in 2020?")
                 .into(),
-            // chat::ChatCompletionRequestAssistantMessage::from(
-            //     "The Los Angeles Dodgers won the World Series in 2020.",
-            // )
-            // .into(),
-            // chat::ChatCompletionRequestUserMessage::from("Where was it played?").into(),
+            chat::ChatCompletionRequestAssistantMessage::from(
+                "The Los Angeles Dodgers won the World Series in 2020.",
+            )
+            .into(),
+            chat::ChatCompletionRequestUserMessage::from("Where was it played?").into(),
         ])
         .build()
         .unwrap();

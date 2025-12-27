@@ -55,7 +55,7 @@ let mut client = client::Client::new(config);
 let request = chat::CreateChatCompletionRequestArgs::default()
     .messages([
         chat::ChatCompletionRequestSystemMessage::from("You are a helpful assistant.").into(),
-        chat::ChatCompletionRequestUserMessage::from("Who won the world series in 2020?").into(),
+        chat::ChatCompletionRequestUserMessage::from("How is the weather today?").into(),
     ])
     .build()
     .unwrap();
