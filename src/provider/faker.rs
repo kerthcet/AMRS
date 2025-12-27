@@ -1,7 +1,9 @@
+use async_openai::types::chat::Choice;
 use async_trait::async_trait;
 
 use crate::client::config::{ModelConfig, ModelName};
-use crate::provider::provider;
+use crate::provider::{common, provider};
+use crate::types::completions::{CreateCompletionRequest, CreateCompletionResponse};
 use crate::types::error::OpenAIError;
 use crate::types::responses::{
     AssistantRole, CreateResponse, OutputItem, OutputMessage, OutputMessageContent, OutputStatus,
@@ -26,8 +28,8 @@ impl provider::Provider for FakerProvider {
         "FakeProvider"
     }
 
-    async fn create_response(&self, request: CreateResponse) -> Result<Response, OpenAIError> {
-        provider::validate_responses_request(&request)?;
+    async fn create_response(&self, _request: CreateResponse) -> Result<Response, OpenAIError> {
+        common::validate_response_request(&_request)?;
 
         Ok(Response {
             id: "fake-response-id".to_string(),
@@ -69,6 +71,28 @@ impl provider::Provider for FakerProvider {
             tool_choice: None,
             top_logprobs: None,
             truncation: None,
+        })
+    }
+
+    async fn create_completion(
+        &self,
+        _request: CreateCompletionRequest,
+    ) -> Result<CreateCompletionResponse, OpenAIError> {
+        common::validate_completion_request(&_request)?;
+
+        Ok(CreateCompletionResponse {
+            id: "fake-completion-id".to_string(),
+            object: "text_completion".to_string(),
+            created: 1_600_000_000,
+            model: self.model.clone(),
+            choices: vec![Choice {
+                index: 0,
+                text: "This is a fake completion.".to_string(),
+                logprobs: None,
+                finish_reason: None,
+            }],
+            usage: None,
+            system_fingerprint: None,
         })
     }
 }

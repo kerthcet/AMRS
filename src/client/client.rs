@@ -4,7 +4,7 @@ use crate::client::config::{Config, ModelName};
 use crate::provider::provider;
 use crate::router::router;
 use crate::types::error::OpenAIError;
-use crate::types::responses::{CreateResponse, Response};
+use crate::types::{completions, responses};
 
 pub struct Client {
     providers: HashMap<ModelName, Box<dyn provider::Provider>>,
@@ -30,11 +30,20 @@ impl Client {
 
     pub async fn create_response(
         &mut self,
-        request: CreateResponse,
-    ) -> Result<Response, OpenAIError> {
-        let candidate = self.router.sample(&request);
+        request: responses::CreateResponse,
+    ) -> Result<responses::Response, OpenAIError> {
+        let candidate = self.router.sample();
         let provider = self.providers.get(&candidate).unwrap();
         provider.create_response(request).await
+    }
+
+    pub async fn create_completion(
+        &mut self,
+        request: completions::CreateCompletionRequest,
+    ) -> Result<completions::CreateCompletionResponse, OpenAIError> {
+        let candidate = self.router.sample();
+        let provider = self.providers.get(&candidate).unwrap();
+        provider.create_completion(request).await
     }
 }
 

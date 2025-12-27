@@ -25,7 +25,7 @@ pub fn construct_router(mode: RoutingMode, models: Vec<ModelConfig>) -> Box<dyn 
 
 pub trait Router {
     fn name(&self) -> &'static str;
-    fn sample(&mut self, input: &CreateResponse) -> ModelName;
+    fn sample(&mut self) -> ModelName;
 }
 
 #[cfg(test)]

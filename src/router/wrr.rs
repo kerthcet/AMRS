@@ -28,7 +28,7 @@ impl Router for WeightedRoundRobinRouter {
     }
 
     // Use Smooth Weighted Round Robin Algorithm.
-    fn sample(&mut self, _input: &CreateResponse) -> ModelName {
+    fn sample(&mut self) -> ModelName {
         // return early if only one model.
         if self.model_infos.len() == 1 {
             return self.model_infos[0].name.clone();
@@ -77,7 +77,7 @@ mod tests {
         let mut wrr = WeightedRoundRobinRouter::new(model_infos.clone());
         let mut counts = HashMap::new();
         for _ in 0..1000 {
-            let sampled_id = wrr.sample(&CreateResponse::default());
+            let sampled_id = wrr.sample();
             *counts.entry(sampled_id.clone()).or_insert(0) += 1;
         }
         assert!(counts.len() == model_infos.len());
