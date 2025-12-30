@@ -36,11 +36,11 @@ Or add the following line to your Cargo.toml:
 ## How to Use
 
 Here's a simple example with the Weighted Round Robin (WRR) routing mode. Before running the code, make sure to set your provider API key in the environment variable by running `export <PROVIDER>_API_KEY="your_provider_api_key"`.
-Here we use DeepInfra as an example.
+Here we use OpenAI as an example.
 
 
 ```rust
-// Make sure DEEPINFRA_API_KEY is set in your environment variables before running this code.
+// Make sure OPENAI_API_KEY is set in your environment variables before running this code.
 
 use arms::client;
 use arms::types::chat;
@@ -48,18 +48,18 @@ use tokio::runtime::Runtime;
 
 fn main() {
     let config = client::Config::builder()
-        .provider("deepinfra")
+        .provider("openai")
         .routing_mode(client::RouterMode::WRR)
         .model(
             client::ModelConfig::builder()
-                .name("deepseek-ai/DeepSeek-V3.2")
+                .name("gpt-3.5-turbo")
                 .weight(2)
                 .build()
                 .unwrap(),
         )
         .model(
             client::ModelConfig::builder()
-                .name("nvidia/Nemotron-3-Nano-30B-A3B")
+                .name("gpt-4")
                 .weight(1)
                 .build()
                 .unwrap(),
