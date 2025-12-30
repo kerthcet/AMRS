@@ -35,12 +35,12 @@ Or add the following line to your Cargo.toml:
 
 ## How to Use
 
-Here's a simple example with the Weighted Round Robin (WRR) routing mode. Before running the code, make sure to set your provider API key in the environment variable by running `export <PROVIDER>_API_KEY="your_openai_api_key"`.
-Here we use OpenAI as an example.
+Here's a simple example with the Weighted Round Robin (WRR) routing mode. Before running the code, make sure to set your provider API key in the environment variable by running `export <PROVIDER>_API_KEY="your_provider_api_key"`.
+Here we use DeepInfra as an example.
 
 
 ```rust
-// Make sure OPENAI_API_KEY is set in your environment variables before running this code.
+// Make sure DEEPINFRA_API_KEY is set in your environment variables before running this code.
 
 use arms::client;
 use arms::types::chat;
